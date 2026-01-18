@@ -1,0 +1,16 @@
+implment entities
+implement entitymanager (deletion)
+implement manager add entity(), update()
+test game class
+
+basics of game class
+    construct player entity using spawn player function
+    implement basic drawing of entities using game render
+    construct enemies using spawn enemy
+    construct bullet using spawnbullet
+
+implement player movement
+implement dead entities
+implement get entities(tag)
+implement collision sCollision entity.destroy
+implement config

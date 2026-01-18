@@ -2,6 +2,7 @@
 #include <SFML/Window.hpp>
 #include <vector>
 #include <string>
+#include <optional>
 #include <iostream>
 #include <fstream>
 #include <sstream>
