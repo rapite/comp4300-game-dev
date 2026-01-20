@@ -12,7 +12,9 @@ void EntityManager::update()
     // TODO: Implement entity removals based on "dead"
     for (auto& e: m_entities)
     {
-        
+       if (!(e->isActive()))
+       {
+       } 
     }
 }
 

@@ -2,6 +2,7 @@
 
 #include "EntityManager.h"
 
+#include <cmath>
 #include <optional>
 
 #include <SFML/Graphics.hpp>

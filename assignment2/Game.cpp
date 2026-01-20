@@ -68,64 +68,83 @@ void Game::sMovement()
     // Apply velocity to position
     m_player->cTransform->pos.y += m_player->cTransform->velocity.y;
     m_player->cTransform->pos.x += m_player->cTransform->velocity.x;
+
+    for (auto& e : m_entities.getEntities("bullet")) {
+        e->cTransform->pos.x += e->cTransform->velocity.x;
+        e->cTransform->pos.y += e->cTransform->velocity.y;
+    }
 }
 
 void Game::sUserInput()
 {
     while (const std::optional event = m_window.pollEvent())
     {
+        // Keyboard Events
         if (const auto* keyPress = event->getIf<sf::Event::KeyPressed>())
         {
-            if (keyPress->code == sf::Keyboard::Key::W)
+            switch (keyPress->code)
             {
+            case sf::Keyboard::Key::W:
                 m_player->cInput->up = true;
                 std::cout << "Pressed Up" << "\n";
-            }
-            if (keyPress->code == sf::Keyboard::Key::A)
-            {
+                break;
+            case sf::Keyboard::Key::A:
                 m_player->cInput->left = true;
                 std::cout << "Pressed Left" << "\n";
-            }
-            if (keyPress->code == sf::Keyboard::Key::S)
-            {
+                break;
+            case sf::Keyboard::Key::S:
                 m_player->cInput->down = true;
                 std::cout << "Pressed Down" << "\n";
-            }
-            if (keyPress->code == sf::Keyboard::Key::D)
-            {
+                break;
+            case sf::Keyboard::Key::D:
                 m_player->cInput->right = true;
                 std::cout << "Pressed Right" << "\n";
-            }
-            if (keyPress->code == sf::Keyboard::Key::P)
-            {
+                break;
+            case sf::Keyboard::Key::P:
                 setPaused(!m_paused);
+            default:
+                break;
             }
-
         }
-        if (const auto* KeyReleased = event->getIf<sf::Event::KeyReleased>())
+        if (const auto* keyReleased = event->getIf<sf::Event::KeyReleased>())
         {
-            if (KeyReleased->code == sf::Keyboard::Key::W)
+            switch (keyReleased->code)
             {
+            case sf::Keyboard::Key::W:
                 m_player->cInput->up = false;
                 std::cout << "Released Up" << "\n";
-            }
-            if (KeyReleased->code == sf::Keyboard::Key::A)
-            {
+                break;
+            case sf::Keyboard::Key::A:
                 m_player->cInput->left = false;
                 std::cout << "Released Left" << "\n";
-            }
-            if (KeyReleased->code == sf::Keyboard::Key::S)
-            {
+                break;
+            case sf::Keyboard::Key::S:
                 m_player->cInput->down = false;
                 std::cout << "Released Down" << "\n";
-            }
-            if (KeyReleased->code == sf::Keyboard::Key::D)
-            {
+                break;
+            case sf::Keyboard::Key::D:
                 m_player->cInput->right = false;
                 std::cout << "Released Right" << "\n";
+                break;
+            default:
+                break;
             }
         }
 
+        // Mouse Events
+        if (const auto* mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>())
+        {
+            if (mouseButtonPressed->button == sf::Mouse::Button::Left)
+            {
+                std::cout << "Left Mouse(" << mouseButtonPressed->position.x
+                    << ", " << mouseButtonPressed->position.y << ")\n";
+                // Shoot
+
+                Vec2 mousePosition(mouseButtonPressed->position.x, mouseButtonPressed->position.y);
+                spawnBullet(m_player, mousePosition); 
+            }
+        }
+        // Close
         if (event->is<sf::Event::Closed>()){
             m_running = false;
         }
@@ -134,7 +153,13 @@ void Game::sUserInput()
 
 void Game::sLifespan()
 {
-
+    for (auto& e : m_entities.getEntities("bullet"))
+    {
+        e->cLifespan->remaining--;
+        if (e->cLifespan->remaining == 0) {
+            e->destroy();
+        }
+    }
 }
 
 void Game::sRender()
@@ -184,7 +209,7 @@ void Game::spawnEnemy()
 {
     if (m_lastEnemySpawnTime <= m_currentFrame + 360)
     {
-        auto entity = m_entities.addEntity("player");
+        auto entity = m_entities.addEntity("enemy");
 
         float ex = rand() % m_window.getSize().x;
         float ey = rand() % m_window.getSize().y;
@@ -204,7 +229,27 @@ void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity)
 }
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 & mousePos)
 {
+    float dX = mousePos.x - entity->cTransform->pos.x;
+    float dY = mousePos.y - entity->cTransform->pos.y;
 
+    float h = std::sqrt(std::pow(dX, 2) + std::pow(dY, 2));
+
+    auto bullet = m_entities.addEntity("bullet");
+    float speed = 3;
+
+    bullet->cTransform = std::make_shared<CTransform>(
+        Vec2(entity->cTransform->pos.x, entity->cTransform->pos.y),
+        Vec2(speed*dX/h, speed*dY/h), 0.0f);
+
+    std::cout << "New Bullet: " << dX/h << ", " << dY/h << "\n";
+
+    bullet->cShape = std::make_shared<CShape>(
+        4.0f, 5, sf::Color(255, 255, 255),
+        sf::Color(255, 255, 255), 4.0f);
+
+    bullet->cLifespan = std::make_shared<CLifespan>(
+        360
+    );
 }
 
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)
