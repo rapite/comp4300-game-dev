@@ -30,11 +30,10 @@ void Game::run()
         
         if (!m_paused)
         {
-            /*
+            //sCollisoin
+            sLifespan();
             sEnemySpawner();
-            sCollision();
-            */
-           sMovement();
+            sMovement();
         }
 
         sRender();
@@ -153,11 +152,13 @@ void Game::sUserInput()
 
 void Game::sLifespan()
 {
-    for (auto& e : m_entities.getEntities("bullet"))
+    for (auto& e : m_entities.getEntities())
     {
-        e->cLifespan->remaining--;
-        if (e->cLifespan->remaining == 0) {
-            e->destroy();
+        if (e->cLifespan)
+        {
+            if (e->cLifespan->remaining <= 0)
+                e->destroy();
+                else e->cLifespan->remaining--;
         }
     }
 }
@@ -180,8 +181,11 @@ void Game::sRender()
 }
 
 void Game::sEnemySpawner()
-{
-
+{ 
+    if (m_currentFrame - m_lastEnemySpawnTime > 360)
+    {
+        spawnEnemy();
+    }
 }
 
 void Game::sCollision()
@@ -207,26 +211,25 @@ void Game::spawnPlayer()
 
 void Game::spawnEnemy()
 {
-    if (m_lastEnemySpawnTime <= m_currentFrame + 360)
-    {
-        auto entity = m_entities.addEntity("enemy");
+    auto entity = m_entities.addEntity("enemy");
 
-        float ex = rand() % m_window.getSize().x;
-        float ey = rand() % m_window.getSize().y;
+    float ex = rand() % m_window.getSize().x;
+    float ey = rand() % m_window.getSize().y;
 
-        entity->cTransform = std::make_shared<CTransform>(Vec2(ex, ey), Vec2(0.0f, 0.0f), 0.0f);
+    entity->cTransform = std::make_shared<CTransform>(Vec2(ex, ey), Vec2(0.0f, 0.0f), 0.0f);
 
-        entity->cShape = std::make_shared<CShape>(16.0f, 8, sf::Color(0, 0, 255), sf::Color(255, 255, 255), 4.0f);
+    entity->cShape = std::make_shared<CShape>(16.0f, 12, sf::Color(0, 0, 255), sf::Color(255, 255, 255), 4.0f);
 
-        entity->cInput = std::make_shared<CInput>();
-    }
+    entity->cInput = std::make_shared<CInput>();
+
     m_lastEnemySpawnTime = m_currentFrame;
 }
 
+// Spawn little ones when big one explodes
 void Game::spawnSmallEnemies(std::shared_ptr<Entity> entity)
 {
-
 }
+
 void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 & mousePos)
 {
     float dX = mousePos.x - entity->cTransform->pos.x;
@@ -247,9 +250,7 @@ void Game::spawnBullet(std::shared_ptr<Entity> entity, const Vec2 & mousePos)
         4.0f, 5, sf::Color(255, 255, 255),
         sf::Color(255, 255, 255), 4.0f);
 
-    bullet->cLifespan = std::make_shared<CLifespan>(
-        360
-    );
+    bullet->cLifespan = std::make_shared<CLifespan>(180);
 }
 
 void Game::spawnSpecialWeapon(std::shared_ptr<Entity> entity)

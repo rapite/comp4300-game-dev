@@ -9,12 +9,12 @@ void EntityManager::update()
     }
     m_toAdd.clear();
 
+    removeDeadEntities(m_entities);
+
     // TODO: Implement entity removals based on "dead"
-    for (auto& e: m_entities)
+    for (auto& [tag, entityVec] : m_entityMap)
     {
-       if (!(e->isActive()))
-       {
-       } 
+        removeDeadEntities(entityVec);
     }
 }
 
@@ -33,4 +33,15 @@ EntityVec& EntityManager::getEntities()
 EntityVec& EntityManager::getEntities(const std::string& tag)
 {
     return m_entityMap[tag];
+}
+
+void EntityManager::removeDeadEntities(EntityVec& vec)
+{
+    vec.erase(std::remove_if(vec.begin(), vec.end(),
+        []( const std::shared_ptr<Entity>& e)
+        { 
+            return !e->isActive();
+        }),
+        vec.end()
+    );
 }

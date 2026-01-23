@@ -25,5 +25,5 @@ public:
   bool isActive() const { return m_active; }
   const std::string & tag() const { return m_tag; }
   const size_t id() const { return m_id; }
-  void destroy();
+  void destroy() { m_active = false; }
 };

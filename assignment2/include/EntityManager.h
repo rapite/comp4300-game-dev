@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <algorithm>
 
 typedef std::vector<std::shared_ptr<Entity>> EntityVec;
 typedef std::map<std::string, EntityVec>     EntityMap;
@@ -21,4 +22,6 @@ public:
   
   EntityVec& getEntities();
   EntityVec& getEntities(const std::string& tag);
+
+  void removeDeadEntities(EntityVec & vec);
 };
